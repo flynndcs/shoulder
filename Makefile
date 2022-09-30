@@ -11,5 +11,6 @@ build:
 	go build .
 
 build-docker:
+	make codegen
 	docker build -f docker/Dockerfile -t flynn/shoulder .
 
