@@ -1,0 +1,6 @@
+package: ping
+generate:
+  gin-server: true
+  models: true
+  embedded-spec: true
+output: api/gen/ping.gen.go

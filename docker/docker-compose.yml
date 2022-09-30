@@ -1,0 +1,35 @@
+version: "3.9"
+services:
+  ping:
+    image: flynn/shoulder
+    build:
+      dockerfile: docker/Dockerfile
+    ports: 
+      - 8080:8080
+    networks:
+      - ping
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+  rabbitmq:
+    image: rabbitmq
+    container_name: rabbitmq
+    hostname: rabbitmq
+    environment:
+      RABBITMQ_DEFAULT_USER: "guest"
+      RABBITMQ_DEFAULT_PASS: "guest"
+      RABBITMQ_DEFAULT_VHOST: "/"
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    healthcheck:
+        test: rabbitmq-diagnostics -q ping
+        interval: 30s
+        timeout: 10s
+        retries: 5
+    networks:
+      - ping
+
+networks:
+  ping:
+    driver: bridge

@@ -1,0 +1,52 @@
+openapi: "3.0.0"
+info:
+servers:
+paths:
+  /command:
+    post:
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CommandContent'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CommandAccepted'
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /query:
+    get:
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/State'
+components:
+  schemas:
+    CommandContent:
+      type: object
+      required:
+        - key
+        - value
+      properties:
+        key:
+          type: number
+        value:
+          type: string
+    CommandAccepted:
+      type: string
+    State:
+      type: string
+    Error:
+      type: string
+
+
+ 
