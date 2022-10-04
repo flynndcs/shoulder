@@ -1,40 +1,41 @@
 package ping
 
 import (
+	"encoding/json"
 	"net/http"
-	ping "shoulder/api/gen"
-	"strconv"
+	gen "shoulder/api/gen"
+
+	"log"
 
 	"github.com/gin-gonic/gin"
-	"github.com/labstack/gommon/log"
 	amqp "github.com/rabbitmq/amqp091-go"
 )
 
 type PingAPI struct {
-	Channel *amqp.Channel
-	Queue   amqp.Queue
+	Channel      *amqp.Channel
+	ExchangeName string
+	State        map[int]string
 }
 
 // (POST /command)
 func (api PingAPI) PostCommand(c *gin.Context) {
-	var command ping.CommandContent
+	var command gen.CommandContent
 	err := c.Bind(&command)
 	if err != nil {
-		log.Info("Could not bind command content")
+		log.Println("Could not bind command content: ", err)
 	}
-	err = api.Channel.PublishWithContext(c, "", api.Queue.Name, false, false, amqp.Publishing{ContentType: "text/plain", Body: []byte(strconv.Itoa(int(command.Key)) + ": " + command.Value)})
+	json, err := json.Marshal(command)
 	if err != nil {
-		log.Info("Could not publish")
+		log.Println("Could not marshal command: ", err)
 	}
-	c.JSON(http.StatusOK, ping.CommandAccepted("Sent message"))
+	err = api.Channel.PublishWithContext(c, api.ExchangeName, "", false, false, amqp.Publishing{ContentType: "text/plain", Body: json})
+	if err != nil {
+		log.Println("Could not publish: ", err)
+	}
+	c.JSON(http.StatusOK, gen.CommandAccepted("Sent message"))
 }
 
 // (GET /query)
 func (api PingAPI) GetQuery(c *gin.Context) {
-	msgs, err := api.Channel.Consume(api.Queue.Name, "", true, false, false, false, nil)
-	if err != nil {
-		log.Info("Could not consumer")
-	}
-	msg := <-msgs
-	c.JSON(http.StatusOK, ping.State(msg.Body))
+	c.JSON(http.StatusOK, api.State)
 }

@@ -1,9 +1,13 @@
 version: "3.9"
 services:
   ping:
+    container_name: ping
     image: flynn/shoulder
     build:
       dockerfile: docker/Dockerfile
+    environment:
+      AMQP_CONN_STRING: "amqp://guest:guest@rabbitmq:5672/" 
+      POSTGRES_CONN_STRING: "host=postgres user=postgres password=postgres dbname=postgres port=5432 sslmode=disable"
     ports: 
       - 8080:8080
     networks:
@@ -11,9 +15,11 @@ services:
     depends_on:
       rabbitmq:
         condition: service_healthy
+      postgres:
+        condition: service_healthy
   rabbitmq:
-    image: rabbitmq
     container_name: rabbitmq
+    image: rabbitmq
     hostname: rabbitmq
     environment:
       RABBITMQ_DEFAULT_USER: "guest"
@@ -27,6 +33,24 @@ services:
         interval: 30s
         timeout: 10s
         retries: 5
+    networks:
+      - ping
+  postgres:
+    container_name: postgres
+    image: postgres
+    restart: always
+    environment:
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_USER: postgres
+      POSTGRES_DB: postgres
+      POSTGRES_HOST: postgres
+    healthcheck:
+      test: ["CMD-SHELL", "sh -c 'pg_isready -U postgres -d postgres'"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    ports:
+      - "5432:5432"
     networks:
       - ping
 
