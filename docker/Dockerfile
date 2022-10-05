@@ -11,6 +11,6 @@ COPY go.sum ./
 
 RUN go mod download
 
-RUN go build -o /ping
+RUN go build -o /shoulder
 
-CMD ["/ping"]
+ENTRYPOINT ["/shoulder"]

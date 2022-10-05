@@ -1,4 +1,4 @@
-package ping
+package api
 
 import (
 	"encoding/json"
@@ -11,14 +11,14 @@ import (
 	amqp "github.com/rabbitmq/amqp091-go"
 )
 
-type PingAPI struct {
+type ShoulderAPI struct {
 	Channel      *amqp.Channel
 	ExchangeName string
 	State        map[int]string
 }
 
 // (POST /command)
-func (api PingAPI) PostCommand(c *gin.Context) {
+func (api ShoulderAPI) PostCommand(c *gin.Context) {
 	var command gen.CommandContent
 	err := c.Bind(&command)
 	if err != nil {
@@ -36,6 +36,6 @@ func (api PingAPI) PostCommand(c *gin.Context) {
 }
 
 // (GET /query)
-func (api PingAPI) GetQuery(c *gin.Context) {
+func (api ShoulderAPI) GetQuery(c *gin.Context) {
 	c.JSON(http.StatusOK, api.State)
 }

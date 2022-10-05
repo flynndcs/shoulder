@@ -1,0 +1,95 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: rabbitmq
+  labels:
+    app: rabbitmq
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: rabbitmq
+  template:
+    metadata:
+      labels:
+        app: rabbitmq
+    spec:
+      hostname: rabbitmq
+      containers:
+      - name: rabbitmq
+        image: rabbitmq
+        ports:
+        - containerPort: 5672
+        - containerPort: 15672
+        imagePullPolicy: Never
+        env:
+        - name: RABBITMQ_DEFAULT_USER
+          value: guest
+        - name: RABBITMQ_DEFAULT_PASS
+          value: guest
+        - name: RABBITMQ_DEFAULT_VHOST
+          value: /
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: postgres
+  labels:
+    app: postgres
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: postgres
+  template:
+    metadata:
+      labels:
+        app: postgres
+    spec:
+      hostname: postgres
+      containers:
+      - name: postgres
+        image: postgres
+        ports:
+        - containerPort: 5432
+        imagePullPolicy: Never
+        env:
+        - name: POSTGRES_PASSWORD
+          value: postgres
+        - name: POSTGRES_USER
+          value: postgres
+        - name: POSTGRES_DB
+          value: postgres
+        - name: POSTGRES_HOST
+          value: postgres
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: shoulder
+  labels:
+    app: shoulder
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: shoulder 
+  template:
+    metadata:
+      labels:
+        app: shoulder
+    spec:
+      hostname: shoulder
+      containers:
+      - name: shoulder
+        image: flynn/shoulder:latest
+        ports:
+        - containerPort: 8080
+        imagePullPolicy: Never
+        env:
+        - name: AMQP_CONN_STRING
+          value: "amqp://guest:guest@rabbitmq:5672"
+        - name: POSTGRES_CONN_STRING 
+          value: "host=postgres user=postgres password=postgres dbname=postgres port=5432 sslmode=disable"
+        - name: EXCHANGE_NAME
+          value: "shoulder"
