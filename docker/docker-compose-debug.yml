@@ -1,24 +1,9 @@
 version: "3.9"
 services:
-  shoulder:
-    container_name: shoulder
-    image: flynn/shoulder
-    build:
-      dockerfile: docker/Dockerfile
-    environment:
-      AMQP_CONN_STRING: "amqp://guest:guest@rabbitmq:5672/" 
-      POSTGRES_CONN_STRING: "host=postgres user=postgres password=postgres dbname=postgres port=5432 sslmode=disable"
-      EXCHANGE_NAME: "shoulder"
-    ports: 
-      - 8080:8080
-    depends_on:
-      rabbitmq:
-        condition: service_healthy
-      postgres:
-        condition: service_healthy
   rabbitmq:
     container_name: rabbitmq
     image: rabbitmq
+    hostname: rabbitmq
     environment:
       RABBITMQ_DEFAULT_USER: "guest"
       RABBITMQ_DEFAULT_PASS: "guest"

@@ -1,18 +1,22 @@
-devUp:
+debugUp:
+	docker compose -f docker/docker-compose-debug.yml up -d 
+
+allUp:
 	docker compose -f docker/docker-compose.yml up -d
 
-devDown:
-	docker compose -f docker/docker-compose.yml down
+allDown:
+	docker compose -f docker/docker-compose.yml down --remove-orphans
 
-build:
-	go build .
+debugDown:
+	docker compose -f docker/docker-compose-debug.yml down --remove-orphans
 
 build-docker:
 	oapi-codegen --config api/gen/config.yaml spec/swagger.yaml
 	docker build -f docker/Dockerfile -t flynn/shoulder .
 
 k8s-deploy:
-	eval $(minikube -p minikube docker-env)
+	oapi-codegen --config api/gen/config.yaml spec/swagger.yaml
+	docker build -f docker/Dockerfile -t flynn/shoulder .
 
 	kubectl apply -f deploy/shoulder.yaml
 
