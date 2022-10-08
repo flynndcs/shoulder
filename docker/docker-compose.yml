@@ -10,7 +10,8 @@ services:
       POSTGRES_CONN_STRING: "host=postgres user=postgres password=postgres dbname=postgres port=5432 sslmode=disable"
       EXCHANGE_NAME: "shoulder"
     ports: 
-      - 8080:8080
+      - "8080:8080"
+      - "8081:8081"
     depends_on:
       rabbitmq:
         condition: service_healthy
@@ -47,3 +48,9 @@ services:
       retries: 5
     ports:
       - "5432:5432"
+  prometheus:
+    container_name: prometheus
+    image: my_prometheus
+    restart: always
+    ports:
+      - "9090:9090"

@@ -15,11 +15,15 @@ build-docker:
 	docker build -f docker/Dockerfile -t flynn/shoulder .
 
 k8s-deploy:
+	eval $(minikube docker-env)
 	oapi-codegen --config api/gen/config.yaml spec/swagger.yaml
 	docker build -f docker/Dockerfile -t flynn/shoulder .
 
-	kubectl apply -f deploy/shoulder.yaml
+	docker pull postgres
+	docker pull rabbitmq
 
-	kubectl expose deployment rabbitmq --target-port=5672
-	kubectl expose deployment postgres --target-port=5432
-	kubectl expose deployment shoulder --port=8080
+	minikube kubectl -- apply -f deploy/shoulder.yaml
+
+	minikube kubectl -- expose deployment rabbitmq --target-port=5672
+	minikube kubectl -- expose deployment postgres --target-port=5432
+	minikube kubectl -- expose deployment shoulder --port=8080

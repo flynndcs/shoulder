@@ -3,6 +3,7 @@ package internal
 import (
 	"encoding/json"
 	"log"
+	"net/http"
 	"shoulder/api"
 	database "shoulder/db"
 
@@ -34,9 +35,13 @@ func InitServer(shoulderConfig ShoulderConfig, channel *amqp.Channel, db *gorm.D
 
 	go listen(msgs, shoulderAPI.State, db)
 
-	r := gin.Default()
+	go func() {
+		http.Handle("/metrics", promhttp.Handler())
+		http.ListenAndServe(":8081", nil)
+	}()
 
-	r.Use(middleware.OapiRequestValidatorWithOptions(swagger, &middleware.Options{ErrorHandler: allowMetrics()}))
+	r := gin.Default()
+	r.Use(middleware.OapiRequestValidator(swagger))
 
 	gen.RegisterHandlers(r, shoulderAPI)
 	if err != nil {
@@ -46,14 +51,6 @@ func InitServer(shoulderConfig ShoulderConfig, channel *amqp.Channel, db *gorm.D
 	err = r.Run()
 	if err != nil {
 		log.Panicf("%s: %s", "Server runtime error", err)
-	}
-}
-
-func allowMetrics() middleware.ErrorHandler {
-	return func(c *gin.Context, message string, statusCode int) {
-		if c.Request.URL.Path == "/metrics" {
-			promhttp.Handler().ServeHTTP(c.Writer, c.Request)
-		}
 	}
 }
 
